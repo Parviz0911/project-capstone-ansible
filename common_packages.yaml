@@ -1,0 +1,14 @@
+---
+- name: Install common packages
+  hosts: all
+  become: yes
+  tasks: 
+    - name: Install required packages
+      yum: 
+        name: 
+          - bind-utils
+          - man
+          - man-pages
+          - mlocate
+          - sysstat
+        state: present
