@@ -1,0 +1,67 @@
+---
+- name: Secure user creation with passwordless sudo and key-only SSH
+  hosts: all
+  become: true
+ 
+  vars:
+    new_user: ansible
+    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDSzD932XV7mmUTsFM2iukjIxbG9eupHSO0510nvcGEcpF57F2DCC4heo9ikVhSZhsyDO3jy/k3ksQOYZ3aqdoicK3/QSqs4M427IHNTYxv/hfsIMsPNZTGfA+Bl/hJ1HljCaSm8zR/JcKsjZ24JE0+9xrVuv02fdMv9iR7B3ljtt9nPabuGetIXmfyldZseLOHcJkdZ9Dh4+zyiihFLSQBMvKFuuirGZc9dQdpbx33ShyYkKOAfJENHLoCox1SPg59U3/llKHWIh5diG8586+KtQsvwllQzg6JRjSlnTXnXSb1yH0oqy+u+gGnMJFE1DW9h5c8zQ4WnAgkBGD757T+cc1iR3ImodcR6yFJcnSCiA1x1J3ub9dx/MSUixVb98anyCIr/vKnNylWfOlngTPH2/Fx8jjAxYewcg/WgZpEERwCPYERbQbYkFvedtvlKWLjZB40zh7ov++Sz3YaaNhuBxUzGvHPk4MFa8gY0ZsKYLsPFNKDIBNqcdzFhB9bmsE= root@prdx-ansible101" 
+  tasks:
+ 
+    - name: Create the user
+      user:
+        name: "{{ new_user }}"
+        shell: /bin/bash
+        create_home: yes
+        state: present
+ 
+    - name: Add user to wheel group 
+      user:
+        name: "{{ new_user }}"
+        groups: wheel
+        append: yes
+ 
+    - name: Create .ssh directory
+      file:
+        path: "/home/{{ new_user }}/.ssh"
+        state: directory
+        owner: "{{ new_user }}"
+        group: "{{ new_user }}"
+        mode: '0700'
+ 
+    - name: Add authorized SSH key
+      copy:
+        content: "{{ ssh_public_key }}"
+        dest: "/home/{{ new_user }}/.ssh/authorized_keys"
+        owner: "{{ new_user }}"
+        group: "{{ new_user }}"
+        mode: '0600'
+ 
+    - name: Allow passwordless sudo for user
+      copy:
+        dest: "/etc/sudoers.d/{{ new_user }}"
+        content: "{{ new_user }} ALL=(ALL) NOPASSWD:ALL"
+        owner: root
+        group: root
+        mode: '0440'
+        validate: '/usr/sbin/visudo -cf %s'
+ 
+    - name: Disable password authentication in SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        state: present
+        backup: yes
+ 
+    - name: Ensure PubkeyAuthentication is enabled
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PubkeyAuthentication'
+        line: 'PubkeyAuthentication yes'
+        state: present
+ 
+    - name: Restart SSH service
+      service:
+        name: sshd
+        state: restarted

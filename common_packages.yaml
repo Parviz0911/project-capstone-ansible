@@ -1,6 +1,6 @@
 ---
 - name: Install common packages
-  hosts: all
+  hosts: nagios1
   become: yes
   tasks: 
     - name: Install required packages
