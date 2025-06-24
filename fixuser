@@ -1,0 +1,80 @@
+---
+- name: Secure user creation with passwordless sudo and password SSH login
+  hosts: localhost
+  become: true
+
+  vars:
+    users:
+      - name: ansible
+        ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDSzD932XV7mmUTsFM2iukjIxbG9eupHSO0510nvcGEcpF57F2DCC4heo9ikVhSZhsyDO3jy/k3ksQOYZ3aqdoicK3/QSqs4M427IHNTYxv/hfsIMsPNZTGfA+Bl/hJ1HljCaSm8zR/JcKsjZ24JE0+9xrVuv02fdMv9iR7B3ljtt9nPabuGetIXmfyldZseLOHcJkdZ9Dh4+zyiihFLSQBMvKFuuirGZc9dQdpbx33ShyYkKOAfJENHLoCox1SPg59U3/llKHWIh5diG8586+KtQsvwllQzg6JRjSlnTXnXSb1yH0oqy+u+gGnMJFE1DW9h5c8zQ4WnAgkBGD757T+cc1iR3ImodcR6yFJcnSCiA1x1J3ub9dx/MSUixVb98anyCIr/vKnNylWfOlngTPH2/Fx8jjAxYewcg/WgZpEERwCPYERbQbYkFvedtvlKWLjZB40zh7ov++Sz3YaaNhuBxUzGvHPk4MFa8gY0ZsKYLsPFNKDIBNqcdzFhB9bmsE= root@prdx-ansible101"
+        password_hash: "$6$w5AhMcgXiqV6Z5G0$3cdhD8zUVTF6HnIhPy9Y8R81INyoAoXlDYeAtw2kuKYoCZj8fVLZIrA0PYB3FHKqXzLsSl6A7G2OQKPzUpCc0."  # hashed "password"
+
+  tasks:
+
+    - name: Ensure users are created with SSH access, sudo, and password
+      block:
+
+        - name: Create user accounts
+          user:
+            name: "{{ item.name }}"
+            shell: /bin/bash
+            create_home: yes
+            state: present
+            password: "{{ item.password_hash }}"
+          loop: "{{ users }}"
+
+        - name: Add users to wheel group
+          user:
+            name: "{{ item.name }}"
+            groups: wheel
+            append: yes
+          loop: "{{ users }}"
+
+        - name: Create .ssh directory
+          file:
+            path: "/home/{{ item.name }}/.ssh"
+            state: directory
+            owner: "{{ item.name }}"
+            group: "{{ item.name }}"
+            mode: '0700'
+          loop: "{{ users }}"
+
+        - name: Add authorized keys
+          copy:
+            content: "{{ item.ssh_public_key }}"
+            dest: "/home/{{ item.name }}/.ssh/authorized_keys"
+            owner: "{{ item.name }}"
+            group: "{{ item.name }}"
+            mode: '0600'
+          loop: "{{ users }}"
+
+        - name: Allow passwordless sudo
+          copy:
+            dest: "/etc/sudoers.d/{{ item.name }}"
+            content: "{{ item.name }} ALL=(ALL) NOPASSWD:ALL"
+            owner: root
+            group: root
+            mode: '0440'
+            validate: '/usr/sbin/visudo -cf %s'
+          loop: "{{ users }}"
+
+    - name: Enable password authentication in SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+        state: present
+        backup: yes
+
+    - name: Ensure PubkeyAuthentication is enabled
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PubkeyAuthentication'
+        line: 'PubkeyAuthentication yes'
+        state: present
+
+    - name: Restart SSH service
+      service:
+        name: sshd
+        state: restarted
+
