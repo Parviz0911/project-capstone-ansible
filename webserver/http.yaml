@@ -1,0 +1,90 @@
+---
+- name: Setup Apache with DevOps-themed Team One welcome page
+  hosts: webserver1
+  become: yes
+
+  tasks:
+    - name: Install Apache
+      yum:
+        name: httpd
+        state: present
+
+    - name: Ensure firewalld is installed
+      yum:
+        name: firewalld
+        state: present
+
+    - name: Start and enable firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Open port 80 for HTTP
+      firewalld:
+        service: http
+        permanent: true
+        state: enabled
+        immediate: true
+
+    - name: Start and enable Apache
+      service:
+        name: httpd
+        state: started
+        enabled: true
+
+    - name: Create a beautiful welcome page
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <title>Team One | DevOps Power</title>
+              <style>
+                  body {
+                      background-color: #1f1f1f;
+                      color: #fff;
+                      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                      text-align: center;
+                      padding: 50px;
+                  }
+                  h1 {
+                      font-size: 3em;
+                      color: #00e6e6;
+                      margin-bottom: 10px;
+                  }
+                  h2 {
+                      font-size: 2em;
+                      color: #ffaa00;
+                      margin-top: 0;
+                  }
+                  img {
+                      width: 300px;
+                      margin: 20px;
+                      border-radius: 12px;
+                      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                  }
+                  .container {
+                      max-width: 900px;
+                      margin: auto;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>🚀 Team One is the BEST! 🔥</h1>
+                  <h2>Masters of DevOps & Automation</h2>
+                  <p>Welcome to our world of continuous integration, delivery, and greatness.</p>
+                  <img src="https://www.redhat.com/cms/managed-files/devops-flowchart-210203_0.png" alt="DevOps Workflow">
+                  <img src="https://cdn.thenewstack.io/media/2021/10/55fa7301-devops.jpeg" alt="DevOps Culture">
+              </div>
+          </body>
+          </html>
+
+    - name: Reload firewalld to apply changes
+      service:
+        name: firewalld
+        state: reloaded
+

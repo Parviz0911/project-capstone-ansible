@@ -1,0 +1,10 @@
+zone_name: "ziyotek1.local"
+reverse_zone_name: "84.168.192.in-addr.arpa"
+zone_serial: "20250624"
+hostname_dns_primary: "prdx-dnsprimary101"
+hostname_dns_secondary: "prdx-dnssecondary101"  
+dns_master_ip: "192.168.84.40"
+dns_secondary_ip: "192.168.84.45"
+dns_forwarders:
+  - "8.8.8.8"
+  - "1.1.1.1"

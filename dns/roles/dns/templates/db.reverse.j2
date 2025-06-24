@@ -1,0 +1,12 @@
+$TTL 86400
+@   IN  SOA      {{ hostname_dns_primary }}.{{ zone_name }}. root.{{ hostname_dns_primary}}.{{ zone_name }}. (
+            {{ zone_serial }}
+            3600
+            1800
+            604800
+            86400 )
+; DNS servers
+         IN  NS      {{ hostname_dns_primary }}.{{ zone_name }}.
+; PTR records for DNS clients
+40      IN  PTR     {{ hostname_dns_primary }}.{{ zone_name }}.
+45     IN  PTR     {{ hostname_dns_secondary }}.{{ zone_name }}.

@@ -1,0 +1,115 @@
+---
+- name: Setup Apache with Cyberpunk DevOps Welcome Page
+  hosts: webserver3
+  become: yes
+
+  tasks:
+    - name: Install Apache
+      yum:
+        name: httpd
+        state: present
+
+    - name: Ensure firewalld is installed
+      yum:
+        name: firewalld
+        state: present
+
+    - name: Start and enable firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Open port 80 for HTTP
+      firewalld:
+        service: http
+        permanent: true
+        state: enabled
+        immediate: true
+
+    - name: Start and enable Apache
+      service:
+        name: httpd
+        state: started
+        enabled: true
+
+    - name: Create a cyberpunk-style welcome page
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <title>Team One - Cyber DevOps</title>
+              <style>
+                  body {
+                      background: #0f0f0f;
+                      color: #00ffe1;
+                      font-family: 'Courier New', Courier, monospace;
+                      margin: 0;
+                      padding: 0;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      height: 100vh;
+                      overflow: hidden;
+                  }
+                  .container {
+                      text-align: center;
+                      max-width: 900px;
+                  }
+                  h1 {
+                      font-size: 3em;
+                      text-shadow: 0 0 5px #00ffe1, 0 0 20px #00ffe1;
+                      animation: glow 2s infinite alternate;
+                  }
+                  h2 {
+                      font-size: 1.5em;
+                      color: #ff00cc;
+                      text-shadow: 0 0 5px #ff00cc;
+                      margin-bottom: 30px;
+                  }
+                  @keyframes glow {
+                      from {
+                          text-shadow: 0 0 5px #00ffe1, 0 0 20px #00ffe1;
+                      }
+                      to {
+                          text-shadow: 0 0 10px #00ffff, 0 0 30px #00ffff;
+                      }
+                  }
+                  .glow-box {
+                      border: 2px solid #00ffe1;
+                      padding: 20px;
+                      border-radius: 10px;
+                      box-shadow: 0 0 20px #00ffe1;
+                      background-color: rgba(255, 255, 255, 0.02);
+                      margin-top: 20px;
+                  }
+                  .image {
+                      width: 300px;
+                      margin: 10px;
+                      border-radius: 10px;
+                      border: 2px solid #ff00cc;
+                      box-shadow: 0 0 10px #ff00cc;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>💡 Team One: Cyber DevOps Lab</h1>
+                  <h2>Automation. Acceleration. Domination.</h2>
+                  <div class="glow-box">
+                      <p>Welcome to our futuristic CI/CD control center. We're redefining pipelines, building resilient infrastructure, and keeping the world running — one deployment at a time.</p>
+                      <img class="image" src="https://miro.medium.com/v2/resize:fit:1400/1*NoPjBfdJFmNwNQbA5Z_kEg.png" alt="Cyber DevOps">
+                      <img class="image" src="https://cdn.thenewstack.io/media/2023/03/4d5df0d3-devops-robot.jpg" alt="AI DevOps">
+                  </div>
+              </div>
+          </body>
+          </html>
+
+    - name: Reload firewalld to apply changes
+      service:
+        name: firewalld
+        state: reloaded
+

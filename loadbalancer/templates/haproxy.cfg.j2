@@ -1,0 +1,23 @@
+# Global settings
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    daemon
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    timeout connect 5000ms
+    timeout client  50000ms
+    timeout server  50000ms
+
+frontend http_front
+    bind *:80
+    default_backend webservers_pool
+
+backend webservers_pool
+{% for server in backend_servers %}
+    server {{ server.name }} {{ server.ip }}:80 check
+{% endfor %}
+

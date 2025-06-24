@@ -1,0 +1,29 @@
+---
+- name: Configure HAProxy Load Balancer
+  hosts: haproxy1
+  become: yes
+  vars:
+    backend_servers:
+      - { name: "web1", ip: "192.168.84.22" }
+      - { name: "web2", ip: "192.168.84.25" }
+      - { name: "web3", ip: "192.168.84.27" }
+ 
+  tasks:
+    - name: Install HAProxy
+      yum:
+        name: haproxy
+        state: present
+ 
+    - name: Copy HAProxy config from template
+      template:
+        src: templates/haproxy.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+        owner: root
+        group: root
+        mode: '0644'
+ 
+    - name: Start and enable HAProxy
+      service:
+        name: haproxy
+        state: started
+        enabled: true

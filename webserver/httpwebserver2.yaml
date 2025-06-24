@@ -1,0 +1,106 @@
+---
+- name: Setup Apache with Enhanced DevOps-themed Welcome Page
+  hosts: webserver2
+  become: yes
+
+  tasks:
+    - name: Install Apache
+      yum:
+        name: httpd
+        state: present
+
+    - name: Ensure firewalld is installed
+      yum:
+        name: firewalld
+        state: present
+
+    - name: Start and enable firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Open port 80 for HTTP
+      firewalld:
+        service: http
+        permanent: true
+        state: enabled
+        immediate: true
+
+    - name: Start and enable Apache
+      service:
+        name: httpd
+        state: started
+        enabled: true
+
+    - name: Create a vibrant DevOps welcome page
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <title>Team One | DevOps Champions</title>
+              <style>
+                  body {
+                      background: linear-gradient(135deg, #007BFF, #004080);
+                      color: #ffffff;
+                      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                      text-align: center;
+                      padding: 40px;
+                  }
+                  h1 {
+                      font-size: 3em;
+                      color: #00ffd5;
+                      margin-bottom: 0;
+                  }
+                  h2 {
+                      font-size: 2em;
+                      color: #ffdd57;
+                      margin-top: 10px;
+                  }
+                  .container {
+                      max-width: 1000px;
+                      margin: auto;
+                  }
+                  img {
+                      width: 320px;
+                      margin: 15px;
+                      border-radius: 10px;
+                      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+                      transition: transform 0.3s ease-in-out;
+                  }
+                  img:hover {
+                      transform: scale(1.05);
+                  }
+                  .icon {
+                      font-size: 50px;
+                      margin: 20px 10px;
+                  }
+              </style>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+          </head>
+          <body>
+              <div class="container">
+                  <h1>💻 Team One: DevOps Champions! 🔧</h1>
+                  <h2>We Build, We Test, We Deploy — Fast & Fearless</h2>
+                  <p>Empowering innovation with automation, teamwork, and awesome tooling.</p>
+                  <div>
+                      <i class="fas fa-server icon"></i>
+                      <i class="fas fa-code icon"></i>
+                      <i class="fas fa-network-wired icon"></i>
+                      <i class="fas fa-laptop-code icon"></i>
+                      <i class="fas fa-cloud icon"></i>
+                  </div>
+                  <img src="https://www.redhat.com/cms/managed-files/devops-flowchart-210203_0.png" alt="DevOps Workflow">
+                  <img src="https://cdn.thenewstack.io/media/2021/10/55fa7301-devops.jpeg" alt="DevOps Culture">
+              </div>
+          </body>
+          </html>
+
+    - name: Reload firewalld to apply changes
+      service:
+        name: firewalld
+        state: reloaded
+

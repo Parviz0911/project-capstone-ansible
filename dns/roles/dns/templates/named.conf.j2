@@ -1,0 +1,21 @@
+options {
+  listen-on port 53 { 127.0.0.1; 192.168.84.40; };
+  allow-query { localhost; 192.168.84.0/24; };
+  directory "var/named";
+  recursion yes;
+  forwarders {
+    {% for forwarder in dns_forwarders %}
+    {{ forwarder }};
+    {% endfor %}
+  };
+};
+
+zone "{{ zone_name }}" IN {
+  type master;
+  file "/var/named/db.forward";
+};
+
+zone "{{ reverse_zone_name }}" IN {
+  type master;
+  file "/var/named/db.reverse";
+};
