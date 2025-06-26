@@ -3,10 +3,13 @@
   hosts: haproxy1
   become: yes
   vars:
-    backend_servers:
-      - { name: "web1", ip: "192.168.84.22" }
-      - { name: "web2", ip: "192.168.84.25" }
-      - { name: "web3", ip: "192.168.84.27" }
+   frontend_port: 80
+   backend_port: 80
+   load_balance_algorithm: roundrobin
+   backend_servers:
+     - { name: "web1", host: "webserver1" }
+     - { name: "web2", host: "webserver2" }
+     - { name: "web3", host: "webserver3" }
  
   tasks:
     - name: Install HAProxy
@@ -27,3 +30,10 @@
         name: haproxy
         state: started
         enabled: true
+
+    - name: Open port 80/tcp in Firewalld
+      firewalld:
+        port: 80/tcp
+        permanent: true
+        state: enabled
+        immediate: true

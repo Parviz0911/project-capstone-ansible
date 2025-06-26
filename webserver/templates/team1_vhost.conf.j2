@@ -1,0 +1,13 @@
+<VirtualHost *:{{ apache_port }}>
+    ServerName {{ apache_server_name }}
+    DocumentRoot {{ apache_doc_root }}
+
+    <Directory "{{ apache_doc_root }}">
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog logs/{{ apache_server_name }}_error.log
+    CustomLog logs/{{ apache_server_name }}_access.log combined
+</VirtualHost>
+

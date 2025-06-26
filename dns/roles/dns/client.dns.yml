@@ -1,0 +1,33 @@
+---
+- name: Configure DNS on client servers
+  hosts: clients
+  become: yes
+  vars:
+    dns_server_ip: "192.168.84.40"
+    search_domain: "ziyotek1.local"
+ 
+  tasks:
+    - name: Ensure /etc/resolv.conf has correct nameserver
+      ansible.builtin.lineinfile:
+        path: /etc/resolv.conf
+        regexp: "^nameserver"
+        line: "nameserver {{ dns_server_ip }}"
+        state: present
+        create: yes
+      notify: restart_networking
+ 
+    - name: Ensure search domain is present
+      ansible.builtin.lineinfile:
+        path: /etc/resolv.conf
+        regexp: "^search"
+        line: "search {{ search_domain }}"
+        state: present
+        insertafter: "^nameserver"
+      notify: restart_networking
+ 
+  handlers:
+    - name: restart_networking
+      ansible.builtin.service:
+        name: NetworkManager
+        state: restarted
+      ignore_errors: true

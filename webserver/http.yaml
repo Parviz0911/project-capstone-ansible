@@ -2,7 +2,10 @@
 - name: Setup Apache with DevOps-themed Team One welcome page
   hosts: webserver1
   become: yes
-
+  vars:
+    apache_port: 80
+    apache_server_name: webserver1
+    apache_doc_root: /var/www/team1
   tasks:
     - name: Install Apache
       yum:
@@ -87,4 +90,18 @@
       service:
         name: firewalld
         state: reloaded
+    - name: Ensure doc root exists
+      file:
+        path: "{{ apache_doc_root }}"
+        state: directory
+        owner: apache
+        group: apache
+        mode: '0755'
 
+    - name: Deploy Apache virtual host config
+      template:
+        src: templates/team1_vhost.conf.j2
+        dest: /etc/httpd/conf.d/team1.conf
+        owner: root
+        group: root
+        mode: '0644'

@@ -8,3 +8,27 @@ dns_secondary_ip: "192.168.84.45"
 dns_forwarders:
   - "8.8.8.8"
   - "1.1.1.1"
+
+dns_clients:
+  - name: prdx-db101.ziyotek1.local.
+    ip: 192.168.84.20
+  - name: prdx-webserver101.ziyotek1.local.
+    ip: 192.168.84.22
+  - name: prdx-webserver102.ziyotek1.local. 
+    ip: 192.168.84.25
+  - name: prdx-webserver103.ziyotek1.local.
+    ip: 192.168.84.27
+  - name: prdx-haproxy101.ziyotek1.local.
+    ip: 192.168.84.37
+  - name: prdx-nagios101.ziyotek1.local. 
+    ip: 192.168.84.28
+  - name: prdx-ansible101.ziyotek1.local.
+    ip: 192.168.84.31
+  - name: prdx-dprimary101.ziyotek1.local. 
+    ip: 192.168.84.35
+  - name: prdx-dworker101.ziyotek1.local.
+    ip: 192.168.84.30
+  - name: prdx-dworker102.ziyotek1.local.
+    ip: 192.168.84.36
+  - name: prdx-dkube101.ziyotek1.local.
+    ip: 192.168.84.33    

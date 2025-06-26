@@ -13,11 +13,12 @@ defaults
     timeout server  50000ms
 
 frontend http_front
-    bind *:80
+    bind *:{{ frontend_port }}
     default_backend webservers_pool
 
 backend webservers_pool
+    balance {{ load_balance_algorithm }}
 {% for server in backend_servers %}
-    server {{ server.name }} {{ server.ip }}:80 check
+    server {{ server.name }} {{ server.host }}:{{ backend_port }} check
 {% endfor %}
 

@@ -1,12 +1,19 @@
 $TTL 86400
 @   IN  SOA      {{ hostname_dns_primary }}.{{ zone_name }}. root.{{ hostname_dns_primary}}.{{ zone_name }}. (
-            {{ zone_serial }}
-            3600
-            1800
-            604800
-            86400 )
+            {{ zone_serial }}  ;serial
+            3600               ;refresh
+            1800               ;retry
+            604800             ;expire
+            86400 )            ;minimum
 ; DNS servers
          IN  NS      {{ hostname_dns_primary }}.{{ zone_name }}.
 ; PTR records for DNS clients
 40      IN  PTR     {{ hostname_dns_primary }}.{{ zone_name }}.
 45     IN  PTR     {{ hostname_dns_secondary }}.{{ zone_name }}.
+
+
+
+; PTR records for client hosts
+{% for client in dns_clients %}
+{{ client.ip.split('.')[3] }}    IN  PTR    {{ client.name }}
+{% endfor %}

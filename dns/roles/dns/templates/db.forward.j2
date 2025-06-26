@@ -13,3 +13,9 @@ $TTL 86400
 ; A records
 {{ hostname_dns_primary }}  IN          A       {{ dns_master_ip }}
 {{ hostname_dns_secondary }}    IN     A     {{ dns_secondary_ip }}
+
+
+; A records for client hosts
+{% for client in dns_clients %}
+{{ client.name.split('.')[0] }}    IN  A    {{ client.ip }}
+{% endfor %}

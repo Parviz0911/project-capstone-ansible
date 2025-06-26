@@ -1,0 +1,37 @@
+
+---
+- name: Create MariaDB/MySQL admin user without pymysql
+  hosts: db1 
+  become: yes          
+
+  vars:
+    db_admin_user: "ansible" 
+    db_admin_password: "password" 
+    db_allowed_host: "localhost" 
+    db_root_password: "password" 
+
+  tasks:
+    - name: Construct SQL command for user creation
+      set_fact:
+        create_user_sql: >
+          CREATE USER '{{ db_admin_user }}'@'{{ db_allowed_host }}' IDENTIFIED BY '{{ db_admin_password }}';
+
+    - name: Construct SQL command for granting privileges
+      set_fact:
+        grant_privileges_sql: >
+          GRANT ALL PRIVILEGES ON *.* TO '{{ db_admin_user }}'@'{{ db_allowed_host }}' WITH GRANT OPTION;
+
+    - name: Execute user creation command
+      shell: |
+        mysql -u root {{ '--password=' + db_root_password if db_root_password is defined and db_root_password }} \
+        -e "{{ create_user_sql }}"
+
+    - name: Execute privilege granting command
+      shell: |
+        mysql -u root {{ '--password=' + db_root_password if db_root_password is defined and db_root_password }} \
+        -e "{{ grant_privileges_sql }}"
+
+    - name: Flush privileges
+      shell: |
+        mysql -u root {{ '--password=' + db_root_password if db_root_password is defined and db_root_password }} \
+        -e "FLUSH PRIVILEGES;"
