@@ -1,0 +1,6 @@
+- hosts: nrpe-servers
+  gather_facts: True
+  remote_user: ansible
+  become: true
+  roles:
+     - nrpe-server

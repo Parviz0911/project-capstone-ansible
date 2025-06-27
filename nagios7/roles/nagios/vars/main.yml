@@ -1,0 +1,22 @@
+#nagiosurl: https://github.com/NagiosEnterprises/nagioscore/archive/nagios-4.4.6.tar.gz
+#nagiossrc: nagios-4.4.6
+nagiossrc: nagios-4.5.9
+nagiosurl: https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.5.9.tar.gz
+pluginsurl: https://nagios-plugins.org/download/nagios-plugins-2.3.2.tar.gz
+pluginssrc: nagios-plugins-2.3.2
+apache_service: httpd
+apache_user: apache
+iptables_service: firewalld
+with_httpd_conf: /etc/httpd/conf.d
+  #monitoring_user: nagios
+  #monitoring_command_group: nagios
+  #download_dir: /home/student
+nagios_users:
+  - user: nagiosadmin
+    pass: password
+download_dir: /tmp
+  #nagiossrc: nagioscore-nagios-4.4.6
+monitoring_user: nagios
+monitoring_command_group: nagcmd
+httpd_conf_dir: /etc/httpd/conf.d
+      

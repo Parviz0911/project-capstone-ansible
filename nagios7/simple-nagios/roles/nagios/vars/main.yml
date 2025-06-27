@@ -1,0 +1,6 @@
+nagios_version: "4.5.9"
+nagios_plugins_version: "2.3.2"
+admin_user: "nagiosadmin"
+admin_password: "password"
+nagios_email: "nagios@ziyotek.com"
+

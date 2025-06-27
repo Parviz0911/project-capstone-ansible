@@ -1,0 +1,7 @@
+- name: Install Nagios Core and Plugins
+  hosts: nagios1
+  become: yes
+  roles:
+    - nagios
+  vars:
+    admin_email: nagios@ziyotek.com

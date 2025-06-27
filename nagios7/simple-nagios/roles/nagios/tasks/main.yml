@@ -1,0 +1,202 @@
+- name: Install required packages
+  yum:
+    name:
+      - gcc
+      - glibc
+      - glibc-common
+      - gd
+      - gd-devel
+      - make
+      - net-snmp
+      - openssl-devel
+      - httpd
+      - php
+      - unzip
+      - wget
+      - postfix
+      - perl
+    state: present
+- name: create a group
+  group:
+    name: nagcmd
+    state: present  
+- name: create nagios user
+  user:
+    name: nagios
+    groups: nagcmd
+    append: yes  
+    state: present  
+      #- name: Create Nagios user/group
+      #command: make install-groups-users
+      #args:
+      #chdir: "/tmp/nagios-{{ nagios_version }}"
+      #register: group_users
+      # changed_when: "'nagios' in group_users.stdout"
+
+- name: Add apache to nagcmd group
+  user:
+    name: apache
+    groups: nagcmd
+    append: yes
+
+- name: Download Nagios Core
+  get_url:
+    url: "https://github.com/NagiosEnterprises/nagioscore/archive/nagios-{{ nagios_version }}.tar.gz"
+    dest: "/tmp/nagios-{{ nagios_version }}.tar.gz"
+
+- name: Extract Nagios Core
+  unarchive:
+    src: "/tmp/nagios-{{ nagios_version }}.tar.gz"
+    dest: /tmp
+    remote_src: yes
+- name: Rename extracted Nagios source directory
+  command: mv /tmp/nagioscore-nagios-{{ nagios_version }} /tmp/nagios-{{ nagios_version }}
+  args:
+    creates: /tmp/nagios-{{ nagios_version }}
+
+- name: Run configure
+  ansible.builtin.command: ./configure
+  args:
+    chdir: "/tmp/nagios-{{ nagios_version }}"
+
+- name: Run make
+  ansible.builtin.command: make all
+  args:
+    chdir: "/tmp/nagios-{{ nagios_version }}"
+
+      #- name: Compile Nagios Core
+      #command: |
+      # ./configure &&  make all
+      # args:
+      #chdir: "/tmp/nagios-{{ nagios_version }}"
+      # creates: "/usr/local/nagios/bin/nagios"
+
+- name: Install Nagios binaries
+  command: make install
+  args:
+    chdir: "/tmp/nagios-{{ nagios_version }}"
+
+- name: Install Nagios daemon/init scripts
+  command: make install-daemoninit
+  args:
+    chdir: "/tmp/nagios-{{ nagios_version }}"
+
+- name: Install Nagios command mode
+  command: make install-commandmode
+  args:
+    chdir: "/tmp/nagios-{{ nagios_version }}"
+
+- name: Install Nagios config
+  command: make install-config
+  args:
+    chdir: "/tmp/nagios-{{ nagios_version }}"
+
+- name: Install Nagios web config
+  command: make install-webconf
+  args:
+    chdir: "/tmp/nagios-{{ nagios_version }}"
+
+- name: Set admin user password for web UI
+  command: htpasswd -bc /usr/local/nagios/etc/htpasswd.users {{ admin_user }} {{ admin_password }}
+  args:
+    creates: /usr/local/nagios/etc/htpasswd.users
+
+- name: Replace Nagios contact email
+  template:
+    src: contacts.cfg.j2
+    dest: /usr/local/nagios/etc/objects/contacts.cfg
+
+- name: Enable config directory
+  lineinfile:
+    path: /usr/local/nagios/etc/nagios.cfg
+    regexp: '^#?cfg_dir=/usr/local/nagios/etc/servers'
+    line: 'cfg_dir=/usr/local/nagios/etc/servers'
+
+- name: Create servers directory
+  file:
+    path: /usr/local/nagios/etc/servers
+    state: directory
+
+# PLUGINS INSTALLATION
+
+- name: Download Nagios plugins
+  get_url:
+    url: "https://nagios-plugins.org/download/nagios-plugins-{{ nagios_plugins_version }}.tar.gz"
+    dest: "/tmp/nagios-plugins.tar.gz"
+
+- name: Extract Nagios plugins
+  unarchive:
+    src: /tmp/nagios-plugins.tar.gz
+    dest: /tmp
+    remote_src: yes
+- name: Configure Nagios plugins
+  ansible.builtin.command: ./configure
+  args:
+    chdir: "/tmp/nagios-plugins-{{ nagios_plugins_version }}"
+
+- name: Compile Nagios plugins
+  ansible.builtin.command: make
+  args:
+    chdir: "/tmp/nagios-plugins-{{ nagios_plugins_version }}"
+
+- name: Install Nagios plugins
+  ansible.builtin.command: make install
+  args:
+    chdir: "/tmp/nagios-plugins-{{ nagios_plugins_version }}"
+
+        #- name: Compile and install plugins
+        #command: |
+        #./configure
+        #make
+        #make install
+        # args:
+        #chdir: "/tmp/nagios-plugins-{{ nagios_plugins_version }}"
+- name: Template Nagios contacts configuration
+  template:
+    src: contacts.cfg.j2
+    dest: /usr/local/nagios/etc/objects/contacts.cfg
+    owner: nagios
+    group: nagios
+    mode: '0644'
+ 
+- name: Verify Nagios config
+  command: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+  register: nagios_config
+  changed_when: false
+  failed_when: nagios_config.rc != 0
+# SERVICES
+- name: Verify Nagios config
+  command: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+  register: nagios_config
+  changed_when: false
+- name: Enable and start httpd
+  systemd:
+    name: httpd
+    state: restarted
+    enabled: true
+
+- name: Enable and start nagios
+  systemd:
+    name: nagios
+    state: started
+    enabled: true
+
+- name: Allow HTTP and HTTPS through firewalld
+  firewalld:
+    service: "{{ item }}"
+    permanent: yes
+    state: enabled
+    immediate: yes
+  loop:
+    - http
+    - https
+
+      #- name: Verify Nagios config
+      # command: /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+      #register: nagios_config
+      #changed_when: false
+
+- name: Show Nagios config validation result
+  debug:
+    var: nagios_config.stdout_lines
+

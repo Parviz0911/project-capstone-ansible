@@ -1,0 +1,9 @@
+---
+- name: Reload systemd configuration
+  ansible.builtin.command:
+    cmd: systemctl daemon-reload 
+
+- name: Restart Nagios
+  ansible.builtin.systemd:
+    name: nagios
+    state: restarted

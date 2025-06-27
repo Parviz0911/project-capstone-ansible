@@ -1,0 +1,229 @@
+- name: Install Required Build Packages/Tools on RHEL
+  yum:
+    name:
+      - gcc
+      - glibc
+      - glibc-common
+      - gd
+      - gd-devel
+      - make
+      - net-snmp
+      - httpd
+      - php
+      - unzip
+      - wget
+      - postfix
+      - openssl-devel
+    state: present
+  when: ansible_os_family == "RedHat"
+
+
+- name: download Nagios
+  get_url: 
+    url: "https://github.com/NagiosEnterprises/nagioscore/archive/nagios-4.4.6.tar.gz"
+    dest: "{{ download_dir }}/{{ nagiossrc }}.tar.gz"
+
+- name: Unpack Nagios source files
+  command: tar -xzvf {{ nagiossrc }}.tar.gz
+  args:
+    chdir: "{{ download_dir }}"
+    creates: "{{ download_dir }}/{{ nagiossrc }}"
+
+- name: Configure Nagios
+  command: >
+    ./configure
+    --with-command-group={{ monitoring_command_group }}
+    --with-command-user={{ monitoring_user }}
+    --with-nagios-user={{ monitoring_user }}
+    --with-nagios-group={{ monitoring_command_group }}
+  args:
+    chdir: "{{ download_dir }}/{{ nagiossrc }}"
+    creates: "{{ download_dir }}/{{ nagiossrc }}/Makefile"
+
+- name: Compile Nagios (make all)
+  command: make all
+  args:
+    chdir: "{{ download_dir }}/{{ nagiossrc }}"
+    creates: "{{ download_dir }}/{{ nagiossrc }}/base/nagios"
+
+- name: Install Nagios (make install)
+  command: make install
+  args:
+    chdir: "{{ download_dir }}/{{ nagiossrc }}"
+    creates: /usr/local/nagios/bin/nagios
+
+- name: Install sample config (make install-config)
+  command: make install-config
+  args:
+    chdir: "{{ download_dir }}/{{ nagiossrc }}"
+    creates: /usr/local/nagios/etc/nagios.cfg
+
+- name: Set up command mode (make install-commandmode)
+  command: make install-commandmode
+  args:
+    chdir: "{{ download_dir }}/{{ nagiossrc }}"
+    creates: /usr/local/nagios/var/rw
+
+- name: Install development headers (make install-devel)
+  command: make install-devel
+  args:
+    chdir: "{{ download_dir }}/{{ nagiossrc }}"
+    creates: /usr/local/nagios/include/nagios/nagios.h
+
+- name: Configure web interface (make install-webconf)
+  command: make install-webconf
+  args:
+    chdir: "{{ download_dir }}/{{ nagiossrc }}"
+    creates: "{{ httpd_conf_dir }}/nagios.conf"
+  notify: restart apache
+
+- name: Install init script (make install-init)
+  command: make install-init
+  args:
+    chdir: "{{ download_dir }}/{{ nagiossrc }}"
+    creates: /etc/init.d/nagios
+
+- name: create {{ monitoring_command_group }} group
+  group: name={{ monitoring_command_group }} state=present
+
+- name: create {{ monitoring_user }} user
+  user: name={{ monitoring_user }} state=present groups={{ monitoring_command_group }}
+
+- name: add apache user to {{ monitoring_command_group }} group
+  user: name={{ apache_user }} state=present groups={{ monitoring_command_group }}
+
+- name: Set up Apache user for Nagios
+  command: htpasswd -b -c /usr/local/nagios/etc/htpasswd.users nagiosadmin password
+
+- name: Restart Apache service
+  service:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - httpd
+
+- name: get plugins
+  get_url: url={{ pluginsurl }} dest={{ download_dir }}/{{ pluginssrc }}.tar.gz
+
+- name: Unpack Nagios Plugins source files
+  command: tar -xzvf {{ pluginssrc }}.tar.gz
+  args:
+    chdir: "{{ download_dir }}"
+    creates: "{{ download_dir }}/{{ pluginssrc }}"
+
+- name: Configure Nagios Plugins
+  command: >
+    ./configure
+    --with-nagios-user={{ monitoring_user }}
+    --with-nagios-group={{ monitoring_command_group }}
+  args:
+    chdir: "{{ download_dir }}/{{ pluginssrc }}"
+    creates: "{{ download_dir }}/{{ pluginssrc }}/Makefile"
+
+- name: Compile Nagios Plugins
+  command: make
+  args:
+    chdir: "{{ download_dir }}/{{ pluginssrc }}"
+    creates: "{{ download_dir }}/{{ pluginssrc }}/plugins/check_ping"
+
+- name: Install Nagios Plugins
+  command: make install
+  args:
+    chdir: "{{ download_dir }}/{{ pluginssrc }}"
+    creates: /usr/local/nagios/libexec/check_ping
+
+
+- name: install nrpe plugin for nagios
+  yum: name=nagios-plugins-nrpe state=present
+
+- name: copy check_nrpe plugin in nagios libexec
+  copy: remote_src=True src=/usr/lib64/nagios/plugins/check_nrpe dest=/usr/local/nagios/libexec/check_nrpe  mode=0755
+  ignore_errors: true
+
+- name: Start and enable Nagios and NRPE services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - nagios
+
+- name: Ensure the directory /usr/local/nagios/etc/servers exists
+  file:
+    path: /usr/local/nagios/etc/servers
+    state: directory
+    mode: '0755'  
+  
+- name: Ensure /usr/local/nagios/etc/servers/ directory exists
+  file:
+    path: /usr/local/nagios/etc/servers/
+    state: directory
+    mode: '0755'
+
+- name: Uncomment line 51 in nagios.cfg
+  become: yes
+  replace:
+    path: /usr/local/nagios/etc/nagios.cfg
+    regexp: '^#cfg_dir=/usr/local/nagios/etc/servers '
+    replace: 'cfg_dir=/usr/local/nagios/etc/servers '  
+
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname.cfg
+    mode: '0644'
+
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname2.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname2.cfg
+    mode: '0644'
+
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname3.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname3.cfg
+    mode: '0644'
+  
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname4.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname4.cfg
+    mode: '0644'
+
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname5.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname5.cfg
+    mode: '0644'
+
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname6.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname6.cfg
+    mode: '0644'
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname7.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname7.cfg
+    mode: '0644'      
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname8.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname8.cfg
+    mode: '0644'      
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname9.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname9.cfg
+    mode: '0644'      
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname10.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname10.cfg
+    mode: '0644'      
+- name: Create Nagios config file for remote host
+  template:
+    src: templates/clientname11.cfg.j2
+    dest: /usr/local/nagios/etc/servers/clientname11.cfg
+    mode: '0644'       

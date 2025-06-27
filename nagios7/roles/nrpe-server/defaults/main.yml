@@ -1,0 +1,6 @@
+---
+nagios_nrpe_server_plugins_dir: /usr/lib64/nagios/plugins
+nagios_nrpe_server_pid: /var/run/nrpe/nrpe.pid
+nagios_nrpe_server_repo_redhat: epel
+nagios_nrpe_server_service: nrpe
+nagios_nrpe_server_dir: /etc/nagios

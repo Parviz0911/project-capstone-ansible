@@ -1,0 +1,52 @@
+---
+- name: Install Required Build Packages/Tools on RHEL
+  yum:
+    name:
+      - gcc
+      - glibc
+      - glibc-common
+      - openssl
+      - openssl-devel
+    state: present
+
+- name: Install EPEL repository
+  ansible.builtin.yum:
+    name: epel-release
+    state: present
+
+- name: Install NRPE
+  ansible.builtin.yum:
+    name: nrpe
+    state: present
+
+- name: Install Nagios plugins
+  ansible.builtin.yum:
+    name:
+      - nagios-plugins
+      - nagios-plugins-load
+      - nagios-plugins-disk
+      - nagios-plugins-procs
+      - nagios-plugins-users
+    state: present
+
+
+      #- name: Configure NRPE
+      #lineinfile:
+      #path: /etc/nagios/nrpe.cfg
+      #regexp: '^allowed_hosts='
+      #line: 'allowed_hosts=127.0.0.1,{{ ansible_host }}'
+      # notify:
+    #- Restart NRPE 
+
+
+- name: Restart NRPE
+  service:
+     name: nrpe
+     state: restarted
+
+- name: Check if firewalld is running
+  shell: systemctl status firewalld
+  register: firewalld_status
+  changed_when: false
+  failed_when: false
+

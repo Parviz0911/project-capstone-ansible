@@ -7,9 +7,9 @@
    backend_port: 80
    load_balance_algorithm: roundrobin
    backend_servers:
-     - { name: "web1", host: "webserver1" }
-     - { name: "web2", host: "webserver2" }
-     - { name: "web3", host: "webserver3" }
+     - { name: "web1", host: "prdx-webserver101.ziyotek1.local" }
+     - { name: "web2", host: "prdx-webserver102.ziyotek1.local" }
+     - { name: "web3", host: "prdx-webserver103.ziyotek1.local" }
  
   tasks:
     - name: Install HAProxy

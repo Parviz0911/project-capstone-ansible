@@ -1,0 +1,44 @@
+---
+
+- name: restart apache
+  service:
+    name: httpd
+    state: restarted
+
+- name: enable apache
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+
+- name: start Nagios service
+  service:
+    name: nagios
+    state: started
+
+- name: enable Nagios service
+  service:
+    name: nagios
+    state: started
+    enabled: yes
+
+- name: allow HTTP service through the firewall
+  firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: allow HTTPS service through the firewall
+  firewalld:
+    service: https
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: reload the firewall
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+
+

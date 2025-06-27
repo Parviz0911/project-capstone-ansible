@@ -1,6 +1,6 @@
 ---
 - name: Configure DNS on client servers
-  hosts: clients
+  hosts: all
   become: yes
   vars:
     dns_server_ip: "192.168.84.40"
@@ -31,3 +31,12 @@
         name: NetworkManager
         state: restarted
       ignore_errors: true
+
+    - name: Ensure nscd is installed and restarted
+      ansible.builtin.yum:
+        name: nscd
+        state: present
+    - name: Restart nscd to flush DNS cashe
+      ansible.builtin.service:
+        name: nscd
+        state: restarted      

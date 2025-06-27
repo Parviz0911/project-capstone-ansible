@@ -1,0 +1,9 @@
+---
+- name: Install Nagios on CentOS Monitoring Server
+  hosts: nagios
+  become: yes
+  remote_user: ansible
+
+  roles:
+     - nagios
+     

@@ -8,11 +8,9 @@ $TTL 86400
 
 ; DNS servers
            IN  NS       {{ hostname_dns_primary }}.{{  zone_name }}.
-           IN  NS       {{ hostname_dns_secondary }}.{{ zone_name }}.
 
 ; A records
 {{ hostname_dns_primary }}  IN          A       {{ dns_master_ip }}
-{{ hostname_dns_secondary }}    IN     A     {{ dns_secondary_ip }}
 
 
 ; A records for client hosts
