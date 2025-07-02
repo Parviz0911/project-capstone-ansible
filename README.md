@@ -1,36 +1,39 @@
-# Project-Capstone-Ansible
-Team 1: Server Roles and IP Assignments
-1. Parviz
-Roles: Ansible, Docker (Primary)
-Hostnames:
-prdx-ansible101 (Ansible VM)
-prdx-dprimary101 (Primary Docker VM)
-IP Range: 192.168.84.10 – 192.168.84.20
-2. Sitora
-Roles: Database, Web Server 1
-Hostnames:
-prdx-db101 (Database Server)
-prdx-webserver101 (Web Server 1)
-IP Range: 192.168.84.20 – 192.168.84.30
-3. Shokhista
-Roles: Docker Worker 1, Docker Worker 2, Kubernetes
-Hostnames:
-prdx-dworker101 (Docker Worker 1)
-prdx-dworker102 (Docker Worker 2)
-prdx-kube101 (Kubernetes Master/Node)
-IP Range: 192.168.84.30 – 192.168.84.40
-4. Parvina
-Roles: Load Balancer (HAProxy), Monitoring (Nagios)
-Hostnames:
-prdx-haproxy101 (HAProxy Load Balancer)
-prdx-nagios101 (Nagios Monitoring Server)
-IP Range: 192.168.84.40 – 192.168.84.50
-5. Ziyoda
-Roles: Web Server 2, Web Server 3
-Hostnames:
-prdx-webserver102 (Web Server 2)
-prdx-webserver103 (Web Server 3)
-IP Range: 192.168.84.50 – 192.168.84.60
+CONFIG FILE 
+Host db1
+    HostName 192.168.84.20
+    User root
+    le prdx-dprimary101
+
+Host dworker1
+    HostName 192.168.84.30
+    User root
+    IdentityFile prdx-dworker101
+
+Host dworker2
+    HostName 192.168.84.36
+    User root
+    IdentityFile prdx-dworker102
+
+Host kube1
+    HostName 192.168.84.33
+    User root
+    IdentityFile prdx-kube101
+
+Host dns1
+    HostName 192.168.84.40
+    User root
+    IdentityFile prdx-dns101
+
+Host dns2
+    HostName 192.168.84.45
+    User root
+    IdentityFile prdx-dns102
+
+Host ansible1
+    HostName 192.168.84.10
+    User root
+    IdentityFile prdx-ansible101zz
+
 
 
 #1Step
