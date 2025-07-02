@@ -1,0 +1,11 @@
+[docker_manager]
+webserver1 ansible_host=192.168.84.22 ansible_user=ansible
+#ansible1    ansible_host=192.168.84.31 ansible_user=ansible
+
+[docker_workers]
+webserver2 ansible_host=192.168.84.25 ansible_user=ansible
+webserver3 ansible_host=192.168.84.27 ansible_user=ansible
+
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+

@@ -1,0 +1,39 @@
+- name: Build custom Docker image on manager
+  hosts: docker_manager
+  become: true
+  tasks:
+    - name: Create temporary build directory
+      file:
+        path: /root/docker-build
+        state: directory
+
+    - name: Copy Dockerfile to build directory
+      template:
+        src: Dockerfile.j2
+        dest: /root/docker-build/Dockerfile
+    - name: Build Docker image (disable BuildKit)
+      shell: |
+        export DOCKER_BUILDKIT=0
+        docker build -t lab-webapp:latest /root/docker-build
+
+    - name: Save Docker image to tarball
+      command: docker save lab-webapp:latest -o /root/lab-webapp.tar
+
+    - name: Fetch the Docker image tarball to control node
+      fetch:
+        src: /root/lab-webapp.tar
+        dest: ./lab-webapp.tar
+        flat: yes
+
+- name: Copy and load Docker image on workers
+  hosts: docker_workers
+  become: true
+  tasks:
+    - name: Copy Docker image tarball to worker
+      copy:
+        src: ./lab-webapp.tar
+
+        dest: /root/lab-webapp.tar
+
+    - name: Load Docker image
+      command: docker load -i /root/lab-webapp.tar

@@ -1,0 +1,11 @@
+- name: Deploy WebApp service in Swarm
+  hosts: docker_manager
+  tasks:
+    - name: Deploy web service with 3 replicas
+      command: >
+        docker service create
+        --name lab-webapp
+        --replicas 3
+        --publish published=8080,target=80
+        lab-webapp:latest
+

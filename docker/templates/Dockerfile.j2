@@ -1,0 +1,17 @@
+FROM centos:7
+
+# Use vault.centos.org instead of mirrorlist to avoid DNS issues
+RUN sed -i 's|^mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-Base.repo && \
+    sed -i 's|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Base.repo
+
+RUN yum -y update && \
+    yum -y install httpd php mysql php-mysql wget tar && \
+    yum clean all
+
+RUN wget https://aws-tc-largeobjects.s3-us-west-2.amazonaws.com/CUR-TF-200-ACACAD/studentdownload/lab-app.tgz -O /tmp/lab-app.tgz && \
+    mkdir -p /var/www/html && \
+    tar -xvzf /tmp/lab-app.tgz -C /var/www/html && \
+    chown apache:root /var/www/html/rds.conf.php
+
+CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
+
