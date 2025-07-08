@@ -1,16 +1,27 @@
 [nagios]
-#dns2 ansible_host=192.168.84.45
-nagios1 ansible_host=192.168.84.45 ansible_user=ansible  # prdx-nagios101
+nagios1     ansible_host=192.168.84.45          ansible_user=ansible  # prdx-nagios101
 
 [nrpe-servers]
-192.168.84.20
-192.168.84.22
-192.168.84.25
-192.168.84.27
-192.168.84.30
-192.168.84.33
-192.168.84.35
-192.168.84.36
-192.168.84.37
-192.168.84.40
-#192.168.84.28
+db1                             ansible_host=192.168.84.20                                ansible_user=ansible 
+webserver1                      ansible_host=192.168.84.22                                ansible_user=ansible
+webserver2                      ansible_host=192.168.84.25                                ansible_user=ansible
+webserver3                      ansible_host=192.168.84.27                                ansible_user=ansible   
+dworker1                        ansible_host=192.168.84.30                                ansible_user=ansible
+kube1                           ansible_host=192.168.84.33                                ansible_user=ansible
+dprimary1                       ansible_host=192.168.84.35                                ansible_user=ansible
+dworker2                        ansible_host=192.168.84.36                                ansible_user=ansible
+haproxy1                        ansible_host=192.168.84.37                                ansible_user=ansible
+ansible                         ansible_host=192.168.84.31                                ansible_user=ansible
+
+[all]
+nagios1     ansible_host=192.168.84.45          ansible_user=ansible  # prdx-nagios101
+db1                             ansible_host=192.168.84.20                                ansible_user=ansible 
+webserver1                      ansible_host=192.168.84.22                                ansible_user=ansible
+webserver2                      ansible_host=192.168.84.25                                ansible_user=ansible
+webserver3                      ansible_host=192.168.84.27                                ansible_user=ansible   
+dworker1                        ansible_host=192.168.84.30                                ansible_user=ansible
+kube1                           ansible_host=192.168.84.33                                ansible_user=ansible
+dprimary1                       ansible_host=192.168.84.35                                ansible_user=ansible
+dworker2                        ansible_host=192.168.84.36                                ansible_user=ansible
+haproxy1                        ansible_host=192.168.84.37                                ansible_user=ansible
+ansible                         ansible_host=192.168.84.31                                ansible_user=ansible

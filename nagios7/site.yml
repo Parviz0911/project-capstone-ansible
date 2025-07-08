@@ -1,4 +1,3 @@
-
 ---
 - import_playbook: nagios-playbook.yml
 - import_playbook: nrpe-main.yml

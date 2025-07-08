@@ -11,6 +11,7 @@
     state: started
     enabled: yes
 
+
 - name: start Nagios service
   service:
     name: nagios

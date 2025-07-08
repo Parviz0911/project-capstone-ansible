@@ -140,6 +140,11 @@
   copy: remote_src=True src=/usr/lib64/nagios/plugins/check_nrpe dest=/usr/local/nagios/libexec/check_nrpe  mode=0755
   ignore_errors: true
 
+
+- name: Debug FQDN for each host
+  debug:
+    msg: "FQDN is {{ fqdn }}"
+    
 - name: Start and enable Nagios and NRPE services
   service:
     name: "{{ item }}"
@@ -227,3 +232,8 @@
     src: templates/clientname11.cfg.j2
     dest: /usr/local/nagios/etc/servers/clientname11.cfg
     mode: '0644'       
+
+
+- name: Debug FQDN for each host
+  debug:
+    msg: "FQDN is {{ fqdn }}"

@@ -1,4 +1,5 @@
-- hosts: nrpe-servers
+- name: client side config
+  hosts: nrpe-servers
   gather_facts: True
   remote_user: ansible
   become: true

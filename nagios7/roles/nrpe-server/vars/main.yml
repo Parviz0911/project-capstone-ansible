@@ -1,1 +1,4 @@
-ansible_host: "192.168.84.28"
+#ansible_host: "192.168.84.28"
+# host_vars or group_vars
+fqdn: "{{ inventory_hostname }}.ziyotek1.local"
+
