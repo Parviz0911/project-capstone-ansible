@@ -1,0 +1,26 @@
+- name: Check if node is already in Swarm
+  command: docker info
+  register: docker_info
+  changed_when: false
+
+- name: Initialize Swarm (manager only)
+  shell: docker swarm init --advertise-addr {{ ansible_host }}
+  when:
+    - inventory_hostname in groups['manager_node']
+    - "'Swarm: inactive' in docker_info.stdout"
+
+- name: Get join token (manager only)
+  command: docker swarm join-token worker -q
+  register: join_token
+  when: inventory_hostname in groups['manager_node']
+ # changed_when: false
+
+- name: Set join token fact (manager only)
+  set_fact:
+    worker_join_token: "{{ join_token.stdout }}"
+  when: inventory_hostname in groups['manager_node']
+
+- name: Join Swarm (workers only)
+  shell: docker swarm join --token {{ hostvars[groups['manager_node'][0]].worker_join_token }} {{ hostvars[groups['manager_node'][0]].ansible_host }}:2377
+  when: inventory_hostname in groups['worker_node']
+

@@ -1,0 +1,60 @@
+- name: Create app directory
+  file:
+    path: /root/webapp
+    state: directory
+
+- name: Create Dockerfile
+  copy:
+    dest: /root/webapp/Dockerfile
+    content: |
+      FROM rockylinux:9
+      RUN dnf -y install epel-release && \
+          dnf -y install httpd php php-mysqlnd php-cli php-common php-fpm procps-ng && \
+          dnf clean all && \
+          rm -rf /var/cache/dnf /tmp/*
+      COPY lab-app.tgz /tmp/lab-app.tgz
+      COPY php.conf /etc/httpd/conf.d/php.conf
+      RUN rm -f /etc/httpd/conf.d/welcome.conf && \
+          mkdir -p /var/www/html && \
+          tar -xzf /tmp/lab-app.tgz -C /var/www/html && \
+          chown apache:root /var/www/html/rds.conf.php && \
+          rm -f /tmp/lab-app.tgz
+      RUN mkdir -p /run/php-fpm
+      EXPOSE 80
+      CMD ["/bin/sh", "-c", "php-fpm -D && httpd -DFOREGROUND"]
+
+- name: Create php.conf
+  copy:
+    dest: /root/webapp/php.conf
+    content: |
+      <FilesMatch \.php$>
+          SetHandler "proxy:unix:/run/php-fpm/www.sock|fcgi://localhost"
+      </FilesMatch>
+
+- name: Download lab-app.tgz
+  get_url:
+    url: https://aws-tc-largeobjects.s3-us-west-2.amazonaws.com/CUR-TF-200-ACACAD/studentdownload/lab-app.tgz
+    dest: /root/webapp/lab-app.tgz
+- name: Render docker-compose.yml from template
+  template:
+    src: docker-compose.yml.j2
+    dest: /root/webapp/docker-compose.yml
+- name: Build Docker image
+  command: docker build -t mylabapp:rocky9 /root/webapp
+  args:
+    chdir: /root/webapp 
+- name: Deploy labapp stack using docker CLI
+  command: docker stack deploy -c /root/webapp/docker-compose.yml labapp
+  args:
+    chdir: /root/webapp
+
+- name: Ensure Dockerfile exists before building
+  stat:
+    path: /root/webapp/Dockerfile
+  register: dockerfile_check
+
+- name: Fail if Dockerfile is missing
+  fail:
+    msg: "Dockerfile not found!"
+  when: not dockerfile_check.stat.exists
+

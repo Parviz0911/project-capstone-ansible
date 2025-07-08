@@ -1,0 +1,9 @@
+version: '3'
+services:
+  mylabapp:
+    image: {{ app_image | default('mylabapp:rocky9') }}
+    ports:
+      - "80:80"
+    deploy:
+      replicas: {{ app_replicas | default(3) }}
+
